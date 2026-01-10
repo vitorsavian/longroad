@@ -45,7 +45,7 @@ int main()
     std::cout << "Maximum nr of vertex attributes supported: " << nrAttributes
         << std::endl;
 
-	Shader ourShader("../3.3.shader.vs", "../3.3.shader.fs"); // you can name your shader files however you like
+	Shader ourShader("3.3.shader.vs", "3.3.shader.fs"); // you can name your shader files however you like
 
     // set up vertex data (and buffer(s)) and configure vertex attributes
     // ------------------------------------------------------------------
@@ -116,7 +116,7 @@ int main()
 
     // load and generate the texture
     int width, height, nrChannels;
-    unsigned char* data = stbi_load("../container.jpg", &width, &height,
+    unsigned char* data = stbi_load("container.jpg", &width, &height,
         &nrChannels, 0);
     if (data)
     {

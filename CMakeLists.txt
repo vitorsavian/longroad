@@ -1,7 +1,8 @@
 ﻿# CMakeList.txt : Top-level CMake project file, do global configuration
 # and include sub-projects here.
 #
-cmake_minimum_required (VERSION 3.8)
+cmake_minimum_required (VERSION 4.2)
+project("LongRoadEng")
 
 # Enable Hot Reload for MSVC compilers if supported.
 if (POLICY CMP0141)
@@ -11,8 +12,6 @@ endif()
 
 find_package(OpenGL REQUIRED)
 find_package(Vulkan REQUIRED)
-
-project("LongRoadEng")
 
 # Build GLFW from vendored source
 set(GLFW_BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
