@@ -51,16 +51,10 @@ int main() {
   // ------------------------------------------------------------------
   float vertices[] = {
       // positions // colors // texture coords
-      0.5f,  0.5f,  0.0f, 1.0f, 0.0f, 0.0f, 1.0f, 1.0f, // top right
-      0.5f,  -0.5f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f, 0.0f, // bottom right
+      0.5f,  0.5f,  0.0f, 1.0f, 0.0f, 0.0f, 2.0f, 2.0f, // top right
+      0.5f,  -0.5f, 0.0f, 0.0f, 1.0f, 0.0f, 2.0f, 0.0f, // bottom right
       -0.5f, -0.5f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, // bottom left
-      -0.5f, 0.5f,  0.0f, 1.0f, 1.0f, 0.0f, 0.0f, 1.0f  // top left
-  };
-
-  float texCoords[] = {
-      0.0f, 0.0f, // lower-left corner
-      1.0f, 0.0f, // lower-right corner
-      0.5f, 1.0f  // top-center corner
+      -0.5f, 0.5f,  0.0f, 1.0f, 1.0f, 0.0f, 0.0f, 2.0f  // top left
   };
 
   unsigned int indices[] = {
@@ -116,15 +110,15 @@ int main() {
 
   unsigned int textures[2];
   glGenTextures(2, textures);
-  glActiveTexture(GL_TEXTURE0);
   glBindTexture(GL_TEXTURE_2D, textures[0]);
   // set the texture wrapping/filtering options (on currently bound texture)
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
   // load and generate the texture
+  stbi_set_flip_vertically_on_load(true);
   int width, height, nrChannels;
   unsigned char *data =
       stbi_load("container.jpg", &width, &height, &nrChannels, 0);
@@ -138,10 +132,12 @@ int main() {
 
   stbi_image_free(data);
 
-  glActiveTexture(GL_TEXTURE1);
   glBindTexture(GL_TEXTURE_2D, textures[1]);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
-  stbi_set_flip_vertically_on_load(true);
   unsigned char *data2 =
       stbi_load("awesomeface.png", &width, &height, &nrChannels, 0);
   if (data2) {
@@ -156,7 +152,7 @@ int main() {
 
   // remove this from the while loop
   ourShader.use();
-  glUniform1i(glGetUniformLocation(ourShader.ID, "texture1"), 0);
+  ourShader.setInt("texture1", 0);
   ourShader.setInt("texture2", 1);
 
   // render loopf
@@ -184,6 +180,11 @@ int main() {
     // glBindVertexArray(VAOs[0]); // seeing as we only have a single VAO
     // there's no need to bind it every time, but we'll do so to keep things a
     // bit more organized
+
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, textures[0]);
+    glActiveTexture(GL_TEXTURE1);
+    glBindTexture(GL_TEXTURE_2D, textures[1]);
 
     glBindVertexArray(VAOs[0]);
     glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
