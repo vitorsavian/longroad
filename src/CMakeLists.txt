@@ -12,6 +12,7 @@ endif()
 configure_file(${CMAKE_SOURCE_DIR}/src/3.3.shader.vs ${CMAKE_BINARY_DIR}/3.3.shader.vs COPYONLY)
 configure_file(${CMAKE_SOURCE_DIR}/src/3.3.shader.fs ${CMAKE_BINARY_DIR}/3.3.shader.fs COPYONLY)
 configure_file(${CMAKE_SOURCE_DIR}/assets/texture/container.jpg ${CMAKE_BINARY_DIR}/container.jpg COPYONLY)
+configure_file(${CMAKE_SOURCE_DIR}/assets/texture/awesomeface.png ${CMAKE_BINARY_DIR}/awesomeface.png COPYONLY)
 
 target_link_libraries(LongRoadEng PRIVATE 
     glfw 
