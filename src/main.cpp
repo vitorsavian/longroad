@@ -1,4 +1,5 @@
 ﻿#include "main.h"
+#include "GLFW/glfw3.h"
 
 void framebuffer_size_callback(GLFWwindow *window, int width, int height);
 void processInput(GLFWwindow *window);
@@ -161,7 +162,7 @@ int main() {
   ourShader.use();
   glUniform1i(glGetUniformLocation(ourShader.ID, "texture1"), 0);
   ourShader.setInt("texture2", 1);
-
+  ourShader.setFloat("visibility", 0.2);
   // render loopf
   // -----------
   while (!glfwWindowShouldClose(window)) {
@@ -197,6 +198,23 @@ int main() {
     // glfw: swap buffers and poll IO events (keys pressed/released, mouse moved
     // etc.)
     // -------------------------------------------------------------------------------
+    if (glfwGetKey(window, GLFW_KEY_RIGHT)) {
+      float value = 0.0f;
+      GLint loc = glGetUniformLocation(ourShader.ID, "visibility");
+
+      glGetUniformfv(ourShader.ID, loc, &value);
+
+      ourShader.setFloat("visibility", value + 0.01f);
+    }
+
+    if (glfwGetKey(window, GLFW_KEY_LEFT)) {
+      float value = 0.0f;
+      GLint loc = glGetUniformLocation(ourShader.ID, "visibility");
+
+      glGetUniformfv(ourShader.ID, loc, &value);
+
+      ourShader.setFloat("visibility", value - 0.01f);
+    }
     glfwSwapBuffers(window);
     glfwPollEvents();
   }
