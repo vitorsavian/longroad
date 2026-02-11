@@ -44,8 +44,8 @@ int main() {
             << std::endl;
 
   Shader ourShader(
-      "3.3.shader.vs",
-      "3.3.shader.fs"); // you can name your shader files however you like
+      "../3.3.shader.vs",
+      "../3.3.shader.fs"); // you can name your shader files however you like
 
   // set up vertex data (and buffer(s)) and configure vertex attributes
   // ------------------------------------------------------------------
@@ -126,7 +126,7 @@ int main() {
   // load and generate the texture
   int width, height, nrChannels;
   unsigned char *data =
-      stbi_load("container.jpg", &width, &height, &nrChannels, 0);
+      stbi_load("../container.jpg", &width, &height, &nrChannels, 0);
   if (data) {
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB,
                  GL_UNSIGNED_BYTE, data);
@@ -146,7 +146,7 @@ int main() {
 
   stbi_set_flip_vertically_on_load(true);
   unsigned char *data2 =
-      stbi_load("awesomeface.png", &width, &height, &nrChannels, 0);
+      stbi_load("../awesomeface.png", &width, &height, &nrChannels, 0);
   if (data2) {
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGBA,
                  GL_UNSIGNED_BYTE, data2);
@@ -157,8 +157,15 @@ int main() {
 
   stbi_image_free(data2);
 
+  glm::mat4 trans = glm::mat4(1.0f);
+  trans = glm::rotate(trans, glm::radians(90.0f), glm::vec3(0.0, 0.0, 1.0));
+  trans = glm::scale(trans, glm::vec3(0.5, 0.5, 0.5));
+
   // remove this from the while loop
   ourShader.use();
+  unsigned int transformLoc = glGetUniformLocation(ourShader.ID, "transform");
+  glUniformMatrix4fv(transformLoc, 1, GL_FALSE, glm::value_ptr(trans));
+    
   glUniform1i(glGetUniformLocation(ourShader.ID, "texture1"), 0);
   ourShader.setInt("texture2", 1);
 

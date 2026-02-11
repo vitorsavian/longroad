@@ -23,5 +23,7 @@ add_subdirectory(external/glfw)
 # Build GLAD
 add_subdirectory(external/glad)
 
+add_subdirectory(external/glm)
+
 # Include sub-projects.
 add_subdirectory(src)
