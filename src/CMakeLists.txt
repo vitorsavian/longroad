@@ -9,10 +9,8 @@ if (CMAKE_VERSION VERSION_GREATER 3.12)
   set_property(TARGET LongRoadEng PROPERTY CXX_STANDARD 20)
 endif()
 
-configure_file(${CMAKE_SOURCE_DIR}/src/3.3.shader.vs ${CMAKE_BINARY_DIR}/3.3.shader.vs COPYONLY)
-configure_file(${CMAKE_SOURCE_DIR}/src/3.3.shader.fs ${CMAKE_BINARY_DIR}/3.3.shader.fs COPYONLY)
-configure_file(${CMAKE_SOURCE_DIR}/assets/texture/container.jpg ${CMAKE_BINARY_DIR}/container.jpg COPYONLY)
-configure_file(${CMAKE_SOURCE_DIR}/assets/texture/awesomeface.png ${CMAKE_BINARY_DIR}/awesomeface.png COPYONLY)
+# Define PROJECT_ROOT for asset pathsa
+target_compile_definitions(LongRoadEng PRIVATE PROJECT_ROOT="${CMAKE_SOURCE_DIR}")
 
 target_link_libraries(LongRoadEng PRIVATE 
     glfw 
