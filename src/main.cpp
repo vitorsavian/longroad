@@ -55,7 +55,7 @@ int main()
 
     // build and compile our shader zprogram
     // ------------------------------------
-    Shader ourShader((std::string(PROJECT_ROOT) + "/src/3.3.shader.vs").c_str(), (std::string(PROJECT_ROOT) + "/src/3.3.shader.fs").c_str());
+    Shader ourShader((std::string(PROJECT_ROOT) + "/src/shader.vs").c_str(), (std::string(PROJECT_ROOT) + "/src/shader.fs").c_str());
 
     // set up vertex data (and buffer(s)) and configure vertex attributes
     // ------------------------------------------------------------------
