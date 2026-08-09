@@ -19,6 +19,9 @@ CMakeLists.txt text eol=lf
 *.sln text eol=crlf
 *.vcxproj text eol=crlf
 
+# Vendored dependencies: keep upstream line endings untouched
+third_party/** -text
+
 # Binary files
 *.png binary
 *.jpg binary
