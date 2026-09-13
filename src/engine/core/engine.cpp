@@ -1,8 +1,9 @@
 #include "engine.h"
 #include "vulkan/vulkan.hpp"
 #include <algorithm>
+#include <cstring>
 #include <iostream>
-#include <map>
+#include <optional>
 
 constexpr uint32_t WIDTH = 800;
 constexpr uint32_t HEIGHT = 600;
@@ -34,10 +35,31 @@ void Engine::init() {
   createInstance();
   setupDebugMessenger();
   pickPhysicalDevice();
+  createLogicalDevice();
 }
 
-bool isDeviceSuitable(vk::raii::PhysicalDevice &device) {
-  return true; // TODO: Implement device suitability checks
+// Index of the first queue family able to run graphics work, or nullopt when
+// the device has none.
+std::optional<uint32_t>
+Engine::findGraphicsQueueFamily(vk::raii::PhysicalDevice const &pd) {
+  auto queueFamilies = pd.getQueueFamilyProperties();
+  auto it = std::ranges::find_if(queueFamilies, [](auto const &qfp) {
+    return static_cast<bool>(qfp.queueFlags & vk::QueueFlagBits::eGraphics);
+  });
+  if (it == queueFamilies.end()) {
+    return std::nullopt;
+  }
+  return static_cast<uint32_t>(std::distance(queueFamilies.begin(), it));
+}
+
+bool Engine::supportsRequiredExtensions(vk::raii::PhysicalDevice const &pd) {
+  auto available = pd.enumerateDeviceExtensionProperties();
+  return std::ranges::all_of(
+      deviceExtensions, [&available](auto const &required) {
+        return std::ranges::any_of(available, [required](auto const &ext) {
+          return strcmp(ext.extensionName, required) == 0;
+        });
+      });
 }
 
 void Engine::pickPhysicalDevice() {
@@ -45,34 +67,21 @@ void Engine::pickPhysicalDevice() {
   if (physicalDevices.empty()) {
     throw std::runtime_error("Failed to find GPUs with Vulkan support!");
   }
-  // Use an ordered map to automatically sort candidates by increasing score
-  std::multimap<int, vk::raii::PhysicalDevice> candidates;
+
+  struct Candidate {
+    vk::raii::PhysicalDevice physicalDevice;
+    uint32_t graphicsFamily;
+    uint32_t score;
+  };
+  std::vector<Candidate> candidates;
 
   for (const auto &pd : physicalDevices) {
-    auto deviceProperties = pd.getProperties();
+    auto properties = pd.getProperties();
     auto deviceFeatures = pd.getFeatures();
-
-    auto queueFamilies = pd.getQueueFamilyProperties();
-    bool supportGraphics = std::ranges::any_of(queueFamilies, [](auto const &qfp) {
-      return bool(qfp.queueFlags & vk::QueueFlagBits::eGraphics); 
-    });
-
-    std::vector<const char*> requiredDeviceExtension = {vk::KHRSwapchainExtensionName};
-
-    auto availableDeviceExtensions = pd.enumerateDeviceExtensionProperties();
-    bool supportsAllRequiredExtensions =
-    std::ranges::all_of( requiredDeviceExtension,
-                       [&availableDeviceExtensions]( auto const & requiredDeviceExtension )
-                       {
-                           return std::ranges::any_of( availableDeviceExtensions,
-                                                       [requiredDeviceExtension]( auto const & availableDeviceExtension )
-                                                       { return strcmp( availableDeviceExtension.extensionName, requiredDeviceExtension ) == 0; } );
-                       } );
-
 
     // Hard requirements: a device missing any of these can't run the engine at
     // all, so it never makes it into the ranking.
-    if (deviceProperties.apiVersion < vk::ApiVersion13) {
+    if (pd.getProperties() .apiVersion < apiVersion) {
       continue; // The engine is built on Vulkan 1.3 features
     }
 
@@ -86,26 +95,74 @@ void Engine::pickPhysicalDevice() {
       continue;
     }
 
+    // Presenting to the window needs the swapchain extension
+    if (!supportsRequiredExtensions(pd)) {
+      continue;
+    }
+
+    // Without a graphics queue there is nothing to submit draw work to
+    auto graphicsFamily = findGraphicsQueueFamily(pd);
+    if (!graphicsFamily) {
+      continue;
+    }
+
     // Preference: everything below only picks the best of the usable GPUs.
     uint32_t score = 0;
 
     // Discrete GPUs have a significant performance advantage
-    if (deviceProperties.deviceType == vk::PhysicalDeviceType::eDiscreteGpu) {
+    if (properties.deviceType == vk::PhysicalDeviceType::eDiscreteGpu) {
       score += 1000;
     }
 
     // Maximum possible size of textures affects graphics quality
-    score += deviceProperties.limits.maxImageDimension2D;
+    score += properties.limits.maxImageDimension2D;
 
-    candidates.insert(std::make_pair(score, pd));
+    candidates.push_back({pd, *graphicsFamily, score});
   }
 
-  // Check if the best candidate is suitable at all
-  if (!candidates.empty()) {
-    physicalDevice = candidates.rbegin()->second;
-  } else {
+  if (candidates.empty()) {
     throw std::runtime_error("failed to find a suitable GPU!");
   }
+
+  auto const &best =
+      *std::ranges::max_element(candidates, {}, &Candidate::score);
+  physicalDevice = best.physicalDevice;
+  graphicsQueueFamilyIndex = best.graphicsFamily;
+  deviceProperties = physicalDevice.getProperties();
+
+  std::cout << "Selected GPU: " << deviceProperties.deviceName.data()
+            << " (graphics queue family " << graphicsQueueFamilyIndex << ")"
+            << std::endl;
+}
+
+void Engine::createLogicalDevice() {
+  float queuePriority = 0.5f;
+  vk::DeviceQueueCreateInfo deviceQueueCreateInfo{
+      .queueFamilyIndex = graphicsQueueFamilyIndex,
+      .queueCount = 1,
+      .pQueuePriorities = &queuePriority};
+
+  // Only the features the engine actually relies on. samplerAnisotropy is
+  // required in pickPhysicalDevice(), so it has to be enabled here too --
+  // filtering on a feature without enabling it would be a no-op.
+  vk::StructureChain<vk::PhysicalDeviceFeatures2,
+                     vk::PhysicalDeviceVulkan11Features,
+                     vk::PhysicalDeviceVulkan13Features,
+                     vk::PhysicalDeviceExtendedDynamicStateFeaturesEXT>
+      featureChain = {{.features = {.samplerAnisotropy = true}},
+                      {.shaderDrawParameters = true},
+                      {.dynamicRendering = true},
+                      {.extendedDynamicState = true}};
+
+  vk::DeviceCreateInfo deviceCreateInfo{
+      .pNext = &featureChain.get<vk::PhysicalDeviceFeatures2>(),
+      .queueCreateInfoCount = 1,
+      .pQueueCreateInfos = &deviceQueueCreateInfo,
+      .enabledExtensionCount = static_cast<uint32_t>(deviceExtensions.size()),
+      .ppEnabledExtensionNames = deviceExtensions.data()};
+
+  device = vk::raii::Device(physicalDevice, deviceCreateInfo);
+  graphicsQueue = vk::raii::Queue(device, graphicsQueueFamilyIndex, 0);
 }
 
 void Engine::setupDebugMessenger() {

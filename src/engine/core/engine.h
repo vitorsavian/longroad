@@ -9,6 +9,11 @@ import vulkan_hpp;
 #define GLFW_INCLUDE_VULKAN
 #include <GLFW/glfw3.h>
 
+#include <array>
+#include <cstdint>
+#include <optional>
+#include <vector>
+
 #ifdef NDEBUG
 const bool debug = false;
 #else
@@ -30,9 +35,14 @@ public:
       "VK_LAYER_KHRONOS_validation",
   };
 
-  static constexpr std:: array<char const *, 1> deviceExtensions{
-      VK_KHR_SWAPCHAIN_EXTENSION_NAME,
+  static constexpr std::array<char const *, 1> deviceExtensions{
+      vk::KHRSwapchainExtensionName,
   };
+
+  // Both the instance and the physical device filter are pinned to this: the
+  // engine relies on 1.3 core features (dynamic rendering, extended dynamic
+  // state), so anything older can't run it.
+  static constexpr uint32_t apiVersion = vk::ApiVersion13;
 
   static constexpr bool enableValidationLayers = debug;
 
@@ -45,6 +55,14 @@ private:
   vk::raii::Instance instance{nullptr};
   vk::raii::DebugUtilsMessengerEXT debugMessenger{nullptr};
   vk::raii::PhysicalDevice physicalDevice{nullptr};
+  vk::raii::Device device{nullptr};
+  vk::raii::Queue graphicsQueue{nullptr};
+
+  // Properties of the picked GPU, kept around for its limits.
+  vk::PhysicalDeviceProperties deviceProperties{};
+
+  // Resolved by pickPhysicalDevice(), which only accepts devices that have one.
+  uint32_t graphicsQueueFamilyIndex{};
 
   std::vector<const char *> getRequiredInstanceExtensions();
   void initWindow();
@@ -54,6 +72,12 @@ private:
   void createInstance();
   void setupDebugMessenger();
   void pickPhysicalDevice();
+  void createLogicalDevice();
+
+  // Device suitability helpers, used while ranking candidates.
+  static std::optional<uint32_t>
+  findGraphicsQueueFamily(vk::raii::PhysicalDevice const &pd);
+  static bool supportsRequiredExtensions(vk::raii::PhysicalDevice const &pd);
 };
 
 } // namespace longroad
