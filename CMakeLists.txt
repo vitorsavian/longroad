@@ -3,21 +3,19 @@
 #
 cmake_minimum_required (VERSION 4.3)
 
-set(CMAKE_CXX_STANDARD 23)
-set(CMAKE_CXX_STANDARD_REQUIRED ON)
+project(LongRoad LANGUAGES C CXX)
+
+option(ENABLE_CXX_MODULES    "Consume Vulkan-Hpp as a C++20 module" OFF)
+option(BUILD_VULKAN_TUTORIAL "Build the VulkanTutorial sample"      ON)
+
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}")
 
-project("LongRoad Engine")
-
-# Enable Hot Reload for MSVC compilers if supported.
-if (POLICY CMP0141)
-  cmake_policy(SET CMP0141 NEW)
-  set(CMAKE_MSVC_DEBUG_INFORMATION_FORMAT "$<IF:$<AND:$<C_COMPILER_ID:MSVC>,$<CXX_COMPILER_ID:MSVC>>,$<$<CONFIG:Debug,RelWithDebInfo>:EditAndContinue>,$<$<CONFIG:Debug,RelWithDebInfo>:ProgramDatabase>>")
-endif()
+# Enable Hot Reload for MSVC compilers.
+set(CMAKE_MSVC_DEBUG_INFORMATION_FORMAT "$<IF:$<AND:$<C_COMPILER_ID:MSVC>,$<CXX_COMPILER_ID:MSVC>>,$<$<CONFIG:Debug,RelWithDebInfo>:EditAndContinue>,$<$<CONFIG:Debug,RelWithDebInfo>:ProgramDatabase>>")
 
 find_package(Vulkan REQUIRED)
 
-if(ENABLE_CPP19_MODULES)
+if(ENABLE_CXX_MODULES)
     message(STATUS "Building Vulkan C++ Module support")
     add_library(VulkanCppModule)
     add_library(Vulkan::cppm ALIAS VulkanCppModule)
@@ -31,7 +29,8 @@ if(ENABLE_CPP19_MODULES)
 
     target_link_libraries(VulkanCppModule PUBLIC Vulkan::Vulkan)
 
-    set_target_properties(VulkanCppModule PROPERTIES CXX_STANDARD 20)
+    # Must match the standard of everything importing the module.
+    target_compile_features(VulkanCppModule PUBLIC cxx_std_23)
 
     target_sources(VulkanCppModule
             PUBLIC

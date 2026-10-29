@@ -1,6 +1,6 @@
 #pragma once
 
-#if defined(__INTELLISENSE__) || !defined(USE_CPP19_MODULES)
+#if defined(__INTELLISENSE__) || !defined(USE_CXX_MODULES)
 #include <vulkan/vulkan_raii.hpp>
 #else
 import vulkan_hpp;

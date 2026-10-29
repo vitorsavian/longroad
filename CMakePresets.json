@@ -1,12 +1,26 @@
 {
-    "version": 9,
+  "version": 9,
   "configurePresets": [
     {
-      "name": "windows-base",
+      "name": "base",
       "hidden": true,
       "generator": "Ninja",
       "binaryDir": "${sourceDir}/build/${presetName}",
       "installDir": "${sourceDir}/install/${presetName}",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug",
+        "CMAKE_EXPORT_COMPILE_COMMANDS": "ON",
+        "ENABLE_CXX_MODULES": "OFF"
+      }
+    },
+    {
+      "name": "windows-base",
+      "hidden": true,
+      "inherits": "base",
+      "architecture": {
+        "value": "x64",
+        "strategy": "external"
+      },
       "cacheVariables": {
         "CMAKE_C_COMPILER": "cl.exe",
         "CMAKE_CXX_COMPILER": "cl.exe"
@@ -18,40 +32,12 @@
       }
     },
     {
-      "name": "x64-debug",
-      "displayName": "x64 Debug",
-      "inherits": "windows-base",
-      "architecture": {
-        "value": "x64",
-        "strategy": "external"
-      },
-      "cacheVariables":   {
-        "CMAKE_BUILD_TYPE": "Debug",
-        "ENABLE_CPP19_MODULES": "OFF",
-        "CMAKE_EXPORT_COMPILE_COMMANDS": "ON"
-      }
-    },
-    {
-      "name": "x64-release",
-      "displayName": "x64 Release",
-      "inherits": "x64-debug",
+      "name": "linux-base",
+      "hidden": true,
+      "inherits": "base",
       "cacheVariables": {
-        "CMAKE_BUILD_TYPE": "Release"
-      }
-    },
-    {
-      "name": "linux-debug",
-      "displayName": "Linux Debug",
-      "generator": "Ninja",
-      "binaryDir": "${sourceDir}/build/${presetName}",
-      "installDir": "${sourceDir}/install/${presetName}",
-      "cacheVariables": {
-        "CMAKE_BUILD_TYPE": "Debug",
-        "ENABLE_CPP19_MODULES": "OFF",
-        "CMAKE_EXPORT_COMPILE_COMMANDS": "ON",
         "CMAKE_C_COMPILER": "clang",
         "CMAKE_CXX_COMPILER": "clang++"
-
       },
       "condition": {
         "type": "equals",
@@ -60,32 +46,44 @@
       }
     },
     {
-      "name": "linux-debug-vulkan-tutorial",
-      "inherits": "linux-debug",
+      "name": "x64-debug",
+      "displayName": "x64 Debug",
+      "inherits": "windows-base"
+    },
+    {
+      "name": "x64-release",
+      "displayName": "x64 Release",
+      "inherits": "windows-base",
       "cacheVariables": {
-        "BUILD_VULKAN_TUTORIAL": "ON"
+        "CMAKE_BUILD_TYPE": "Release"
       }
     },
     {
-      "name": "x64-debug-vulkan-tutorial",
-      "inherits": "x64-debug",
+      "name": "linux-debug",
+      "displayName": "Linux Debug",
+      "inherits": "linux-base"
+    },
+    {
+      "name": "linux-release",
+      "displayName": "Linux Release",
+      "inherits": "linux-base",
       "cacheVariables": {
-        "BUILD_VULKAN_TUTORIAL": "ON"
+        "CMAKE_BUILD_TYPE": "Release"
       }
     }
-  ], 
-    "buildPresets": [
-      {
-        "name": "vulkan-tutorial",
-        "displayName": "Vulkan Tutorial",
-        "configurePreset": "linux-debug-vulkan-tutorial",
-        "targets": [ "VulkanTutorial" ]
-      },
-      {
-        "name": "vulkan-tutorial-windows",
-        "displayName": "Vulkan Tutorial Windows",
-        "configurePreset": "x64-debug-vulkan-tutorial",
-        "targets": [ "VulkanTutorial" ]
-      }
-    ]
+  ],
+  "buildPresets": [
+    {
+      "name": "vulkan-tutorial",
+      "displayName": "Vulkan Tutorial",
+      "configurePreset": "linux-debug",
+      "targets": [ "VulkanTutorial" ]
+    },
+    {
+      "name": "vulkan-tutorial-windows",
+      "displayName": "Vulkan Tutorial Windows",
+      "configurePreset": "x64-debug",
+      "targets": [ "VulkanTutorial" ]
+    }
+  ]
 }

@@ -82,14 +82,13 @@ Note that Debian/Ubuntu CMake is usually far below 4.3 — install it from
 ### Build
 
 ```sh
-cmake --preset linux-debug-vulkan-tutorial
+cmake --preset linux-debug
 cmake --build --preset vulkan-tutorial
 ```
 
-The binary lands at `build/linux-debug-vulkan-tutorial/VulkanTutorial`.
+The binary lands at `build/linux-debug/VulkanTutorial`.
 
-To build only the engine library, use the `linux-debug` preset instead — the
-sample is gated behind `BUILD_VULKAN_TUTORIAL`.
+To build only the engine library, configure with `-DBUILD_VULKAN_TUTORIAL=OFF`.
 
 ## Windows
 
@@ -117,39 +116,41 @@ No X11/Wayland equivalent is needed — GLFW uses the Win32 backend.
 ### Build
 
 ```bat
-cmake --preset x64-debug-vulkan-tutorial
+cmake --preset x64-debug
 cmake --build --preset vulkan-tutorial-windows
 ```
 
-The binary lands at `build\x64-debug-vulkan-tutorial\VulkanTutorial.exe`.
+The binary lands at `build\x64-debug\VulkanTutorial.exe`.
 
 ## Presets
 
-| Configure preset                | Platform | Notes                              |
-| ------------------------------- | -------- | ---------------------------------- |
-| `linux-debug`                   | Linux    | Engine only                        |
-| `linux-debug-vulkan-tutorial`   | Linux    | Engine + sample                    |
-| `x64-debug`                     | Windows  | Engine only                        |
-| `x64-release`                   | Windows  | Engine only, Release               |
-| `x64-debug-vulkan-tutorial`     | Windows  | Engine + sample                    |
+| Configure preset | Platform | Build type |
+| ---------------- | -------- | ---------- |
+| `linux-debug`    | Linux    | Debug      |
+| `linux-release`  | Linux    | Release    |
+| `x64-debug`      | Windows  | Debug      |
+| `x64-release`    | Windows  | Release    |
 
-| Build preset               | Configure preset               |
-| -------------------------- | ------------------------------ |
-| `vulkan-tutorial`          | `linux-debug-vulkan-tutorial`  |
-| `vulkan-tutorial-windows`  | `x64-debug-vulkan-tutorial`    |
+All of them build the engine and the sample (`BUILD_VULKAN_TUTORIAL` defaults to
+`ON`).
+
+| Build preset               | Configure preset |
+| -------------------------- | ---------------- |
+| `vulkan-tutorial`          | `linux-debug`    |
+| `vulkan-tutorial-windows`  | `x64-debug`      |
 
 Configure presets are guarded by a host condition, so `cmake --list-presets`
 only shows the ones for the OS you are on.
 
 ## Optional: Vulkan C++20 modules
 
-Every preset sets `ENABLE_CPP19_MODULES=OFF`, which is the supported path. When
+Every preset sets `ENABLE_CXX_MODULES=OFF`, which is the supported path. When
 turned on, the build compiles `vulkan.cppm` from the Vulkan SDK as a named module
 and the engine does `import vulkan_hpp` instead of including
 `<vulkan/vulkan_raii.hpp>`.
 
 ```sh
-cmake --preset linux-debug-vulkan-tutorial -DENABLE_CPP19_MODULES=ON
+cmake --preset linux-debug -DENABLE_CXX_MODULES=ON
 ```
 
 This needs a `vulkan.cppm` in the SDK include directory and a toolchain with
