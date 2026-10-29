@@ -48,9 +48,18 @@ set(GLFW_BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
 set(GLFW_BUILD_TESTS    OFF CACHE BOOL "" FORCE)
 set(GLFW_BUILD_DOCS     OFF CACHE BOOL "" FORCE)
 set(GLFW_INSTALL        OFF CACHE BOOL "" FORCE)
-add_subdirectory(third_party/glfw)
+add_subdirectory(external/glfw)
 
-add_subdirectory(third_party/glm)
+# Build SDL3 from vendored source, static like GLFW
+set(SDL_SHARED       OFF CACHE BOOL "" FORCE)
+set(SDL_STATIC       ON  CACHE BOOL "" FORCE)
+set(SDL_TEST_LIBRARY OFF CACHE BOOL "" FORCE)
+set(SDL_TESTS        OFF CACHE BOOL "" FORCE)
+set(SDL_EXAMPLES     OFF CACHE BOOL "" FORCE)
+set(SDL_INSTALL      OFF CACHE BOOL "" FORCE)
+add_subdirectory(external/SDL)
+
+add_subdirectory(external/glm)
 
 # Include sub-projects.
 add_subdirectory(src)

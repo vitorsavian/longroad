@@ -15,9 +15,10 @@ The repository is a CMake super-project split into three parts:
 
 ### Vendored — nothing to install
 
-These live in `third_party/` and are built from source as part of the project:
+These live in `external/` and are built from source as part of the project:
 
 - **GLFW** — windowing and input
+- **SDL3** — windowing, input, audio (3.4.18, built static)
 - **GLM** — math
 
 ### Required on your machine
